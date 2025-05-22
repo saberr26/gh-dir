@@ -31,7 +31,6 @@ export function addCloneCommand(program: Command): void {
     .option('-d, --debug', 'Enable debug output', false)
     .option('-p, --plain', 'Display plain output without boxes', false)
     .action(async (url, destination, options) => {
-      // Set debug mode if requested
       logger.setDebugMode(options.debug || false);
       await cloneDirectory(url, destination, options);
     });
@@ -63,17 +62,14 @@ export async function cloneDirectory(
   const usePlainOutput = options.plain || false;
   const useBoxes = !usePlainOutput;
   
-  // Set debug mode if requested
   logger.setDebugMode(options.debug || false);
   
   try {
-    // Validate URL
     if (!url.includes('github.com')) {
       logger.error('URL must be a GitHub URL', useBoxes);
       process.exit(1);
     }
 
-    // Get repository info
     const spinner = ora('Analyzing repository...').start();
     const parsedPath = await getRepositoryInfo(url, token);
 
@@ -101,7 +97,6 @@ export async function cloneDirectory(
 
     const { user, repository, gitReference, directory, isPrivate } = parsedPath;
     
-    // Handle direct repository download
     if ('downloadUrl' in parsedPath) {
       spinner.stop();
       logger.info(`The URL points to an entire repository, not a specific directory`, useBoxes);
@@ -111,7 +106,6 @@ export async function cloneDirectory(
 
     spinner.stop();
     
-    // Display repository info in a nice box if requested
     if (useBoxes) {
       logger.summary([
         `Repository: ${user}/${repository}`,
@@ -122,34 +116,28 @@ export async function cloneDirectory(
       logger.success(`Repository: ${user}/${repository}, Branch: ${gitReference || 'default'}, Directory: /${directory}`);
     }
 
-    // Determine destination folder
     let destFolder = destination || '.';
     
-    // If no destination provided, use the directory name
     if (!destination) {
       const dirName = directory.split('/').pop() || repository;
       destFolder = path.join('.', dirName);
     }
     
-    // Check if destination exists
     if (fs.existsSync(destFolder)) {
       if (!fs.statSync(destFolder).isDirectory()) {
         logger.error(`Destination ${destFolder} exists and is not a directory`, useBoxes);
         process.exit(1);
       }
       
-      // Check if directory is empty
       const files = fs.readdirSync(destFolder);
       if (files.length > 0 && !force) {
         logger.error(`Destination directory ${destFolder} is not empty. Use --force to overwrite.`, useBoxes);
         process.exit(1);
       }
     } else {
-      // Create destination directory
       fs.mkdirSync(destFolder, { recursive: true });
     }
 
-    // Get file list
     spinner.text = 'Fetching file list...';
     spinner.start();
     
@@ -175,7 +163,6 @@ export async function cloneDirectory(
       logger.success(`Found ${files.length} files`);
     }
 
-    // Prepare for download
     const controller = new AbortController();
     const signal = controller.signal;
     
@@ -183,7 +170,6 @@ export async function cloneDirectory(
     const totalFiles = files.length;
     const progressSpinner = ora(`Downloading 0/${totalFiles} files...`).start();
     
-    // Download files
     try {
       await pMap(files, async file => {
         try {
@@ -197,17 +183,14 @@ export async function cloneDirectory(
             token,
           });
           
-          // Determine file path relative to the destination
           const filePath = file.path.replace(directory ? directory + '/' : '', '');
           const fullPath = path.join(destFolder, filePath);
           
-          // Create directory if it doesn't exist
           const dirname = path.dirname(fullPath);
           if (!fs.existsSync(dirname)) {
             fs.mkdirSync(dirname, { recursive: true });
           }
           
-          // Write file
           fs.writeFileSync(fullPath, Buffer.from(content));
           
           downloaded++;
