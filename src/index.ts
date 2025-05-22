@@ -19,16 +19,13 @@ import getRepositoryInfo from './repository-info.js';
 import { addCloneCommand } from './clone-command.js';
 import logger from './logger.js';
 
-// Define CLI options
 program
   .name('github-dir')
   .description('Download GitHub directories directly from terminal')
   .version('1.0.0');
 
-// Add the clone command
 addCloneCommand(program);
 
-// Default command (download)
 program
   .command('download', { isDefault: true })
   .description('Download a GitHub directory (default command)')
@@ -40,7 +37,6 @@ program
   .option('-d, --debug', 'Enable debug output', false)
   .option('-p, --plain', 'Display plain output without boxes', false)
   .action((url, options) => {
-    // Set debug mode if requested
     logger.setDebugMode(options.debug || false);
     downloadDirectory(url, options);
   });
@@ -71,7 +67,6 @@ async function downloadDirectory(
   const usePlainOutput = options.plain || false;
   const useBoxes = !usePlainOutput;
   
-  // Set debug mode if requested
   logger.setDebugMode(options.debug || false);
 
 async function listFiles(
@@ -121,13 +116,11 @@ async function saveFiles(
 
   
   try {
-    // Validate URL
     if (!url.includes('github.com')) {
       logger.error('URL must be a GitHub URL', useBoxes);
       process.exit(1);
     }
 
-    // Get repository info
     const spinner = ora('Analyzing repository...').start();
     const parsedPath = await getRepositoryInfo(url, token);
 
@@ -166,7 +159,6 @@ async function saveFiles(
 
     spinner.stop();
     
-    // Display repository info in a nice box if requested
     if (useBoxes) {
       logger.summary([
         `Repository: ${user}/${repository}`,
@@ -177,7 +169,6 @@ async function saveFiles(
       logger.success(`Repository: ${user}/${repository}, Branch: ${gitReference || 'default'}, Directory: /${directory}`);
     }
 
-    // Get file list
     const files = await listFiles({
       user,
       repository,
@@ -192,7 +183,6 @@ async function saveFiles(
       process.exit(0);
     }
 
-    // Prepare for download
     const controller = new AbortController();
     const signal = controller.signal;
     
@@ -200,7 +190,6 @@ async function saveFiles(
     const totalFiles = files.length;
     const progressSpinner = ora(`Downloading 0/${totalFiles} files...`).start();
     
-    // Download files
     try {
       // Create an array to store downloaded files with their content
       const downloadedFiles: Array<TreeResponseObject | ContentsReponseObject & { content: ArrayBuffer }> = [];
@@ -220,7 +209,6 @@ async function saveFiles(
           downloaded++;
           progressSpinner.text = `Downloading ${downloaded}/${totalFiles} files... (${file.path})`;
           
-          // Add content to the file object
           downloadedFiles.push({ ...file, content });
         } catch (error) {
           logger.error(`Error downloading ${file.path}: ${(error as Error).message}`);
@@ -235,34 +223,28 @@ async function saveFiles(
         logger.success(`Downloaded ${downloaded}/${totalFiles} files`);
       }
       
-      // Save files
       if (asZip) {
         const zipSpinner = ora('Creating zip file...').start();
         const zip = new JSZip();
         
-        // Add files to zip
         for (const file of downloadedFiles) {
           const filePath = file.path.replace(directory ? directory + '/' : '', '');
           zip.file(filePath, 'content' in file ? file.content : new ArrayBuffer(0));
         }
         
-        // Generate zip file
         const zipContent = await zip.generateAsync({ type: 'nodebuffer' });
         
-        // Determine output file path
         let outputFilePath = outputPath;
         if (!outputFilePath.endsWith('.zip')) {
           const defaultName = `${user}-${repository}-${gitReference}${directory ? '-' + directory.replace(/\//g, '-') : ''}`;
           outputFilePath = path.join(outputPath, `${defaultName}.zip`);
         }
         
-        // Create directory if it doesn't exist
         const outputDir = path.dirname(outputFilePath);
         if (!fs.existsSync(outputDir)) {
           fs.mkdirSync(outputDir, { recursive: true });
         }
         
-        // Write zip file
         fs.writeFileSync(outputFilePath, zipContent);
         zipSpinner.stop();
         
@@ -278,19 +260,16 @@ async function saveFiles(
       } else {
         const extractSpinner = ora('Extracting files...').start();
         
-        // Determine output directory
         let outputDir = outputPath;
         if (fs.existsSync(outputDir) && !fs.statSync(outputDir).isDirectory()) {
           console.error(`Error: Output path ${outputDir} is not a directory`);
           process.exit(1);
         }
         
-        // Create output directory if it doesn't exist
         if (!fs.existsSync(outputDir)) {
           fs.mkdirSync(outputDir, { recursive: true });
         }
         
-        // Save files to disk
         await saveFiles(downloadedFiles, outputDir, directory ? directory + '/' : '');
         extractSpinner.stop();
         
@@ -317,5 +296,3 @@ async function saveFiles(
     process.exit(1);
   }
 }
-
-// The program.parse() call at the top of the file handles command-line parsing
