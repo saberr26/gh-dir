@@ -69,13 +69,6 @@ A Rust-based command-line tool designed to download specific directories from Gi
 
 ## Installation
 
-### Using Cargo
-Install the tool globally via Cargo:
-
-```bash
-cargo install gh-dir-rust
-```
-
 ### From Source
 For the latest development version:
 
