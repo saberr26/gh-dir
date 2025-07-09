@@ -2,6 +2,9 @@
 node_modules/
 jspm_packages/
 
+#rust
+target/
+
 # Distribution / build files
 dist/
 build/
@@ -44,7 +47,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
-
+GEMINI.md
 # Downloaded files during testing
 layout
 style.css
