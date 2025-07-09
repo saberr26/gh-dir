@@ -1,0 +1,19 @@
+[package]
+name = "gh-dir-rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.4.18", features = ["derive"] }
+reqwest = { version = "0.11.23", features = ["json"] }
+tokio = { version = "1.35.1", features = ["full"] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+zip = "0.6.6"
+indicatif = "0.17.7"
+anyhow = "1.0.79"
+thiserror = "1.0.56"
+url = "2.5.0"
+futures-util = "0.3.30"
+console = "0.15.7"
+dialoguer = "0.11.0"

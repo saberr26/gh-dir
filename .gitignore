@@ -1,55 +1,5 @@
-# Dependency directories
+templates/
 node_modules/
-jspm_packages/
-
-# Distribution / build files
+target/
 dist/
-build/
-out/
-*.tgz
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# Environment variables
-.env
-.env.test
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Test directories and files
-test-*/
-test-*.js
-test-*.zip
-
-# OS specific files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Editor directories and files
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# Downloaded files during testing
-layout
-style.css
-
-# Temporary files
-*.tmp
-*.temp
-.cache/
+pnpm-lock.yaml
